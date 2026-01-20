@@ -1,22 +1,52 @@
 .chessboard {
+  --light-square: #f0d9b5;
+  --dark-square: #b58863;
+
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
-  background-color: green;
 }
 
 .board-square {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   width: 5em;
   aspect-ratio: 1/1;
+  font-size: 16px;
 }
 
 .board-square.dark {
-  background-color: #b58863;
+  background-color: var(--dark-square);
 }
 
 .board-square.light {
-  background-color: #f0d9b5;
+  background-color: var(--light-square);
+}
+
+.file-label {
+  position: absolute;
+  bottom: 2%;
+  left: 4%;
+  font-size: 0.6em;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.rank-label {
+  position: absolute;
+  top: 2%;
+  right: 4%;
+  font-size: 0.6em;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.light-text {
+  color: var(--light-square);
+}
+
+.dark-text {
+  color: var(--dark-square);
 }

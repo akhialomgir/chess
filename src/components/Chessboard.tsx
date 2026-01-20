@@ -22,10 +22,21 @@ const pieceSprite: Record<Exclude<Piece, null>, string> = {
 
 function Square({ pos, value }: { pos: [number, number]; value: Piece }) {
   const pieceSrc = value ? pieceSprite[value] : null;
+  const [x, y] = pos;
+  const isDark = (x + y) & 1;
+
+  const fileLabel = String.fromCharCode(97 + x); // a-h
+  const rankLabel = 8 - y; // 8-1
 
   return (
-    <div className={`board-square ${(pos[0] + pos[1]) & 1 ? 'dark' : 'light'}`}>
+    <div className={`board-square ${isDark ? 'dark' : 'light'}`}>
       {pieceSrc && <img src={pieceSrc} alt={`${value} piece`} />}
+      <span className={`file-label ${isDark ? 'light-text' : 'dark-text'}`}>
+        {fileLabel}
+      </span>
+      <span className={`rank-label ${isDark ? 'light-text' : 'dark-text'}`}>
+        {rankLabel}
+      </span>
     </div>
   );
 }
