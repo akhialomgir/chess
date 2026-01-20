@@ -5,19 +5,20 @@ type Piece = 'P' | 'N' | 'B' | 'R' | 'Q' | 'K' |
   'p' | 'n' | 'b' | 'r' | 'q' | 'k' |
   null;
 
+const assetBase = import.meta.env.BASE_URL; // dev: '/', pages: '/chess/'
 const pieceSprite: Record<Exclude<Piece, null>, string> = {
-  P: '/piece/wP.svg',
-  N: '/piece/wN.svg',
-  B: '/piece/wB.svg',
-  R: '/piece/wR.svg',
-  Q: '/piece/wQ.svg',
-  K: '/piece/wK.svg',
-  p: '/piece/bP.svg',
-  n: '/piece/bN.svg',
-  b: '/piece/bB.svg',
-  r: '/piece/bR.svg',
-  q: '/piece/bQ.svg',
-  k: '/piece/bK.svg',
+  P: `${assetBase}piece/wP.svg`,
+  N: `${assetBase}piece/wN.svg`,
+  B: `${assetBase}piece/wB.svg`,
+  R: `${assetBase}piece/wR.svg`,
+  Q: `${assetBase}piece/wQ.svg`,
+  K: `${assetBase}piece/wK.svg`,
+  p: `${assetBase}piece/bP.svg`,
+  n: `${assetBase}piece/bN.svg`,
+  b: `${assetBase}piece/bB.svg`,
+  r: `${assetBase}piece/bR.svg`,
+  q: `${assetBase}piece/bQ.svg`,
+  k: `${assetBase}piece/bK.svg`,
 };
 
 function Square({ pos, value }: { pos: [number, number]; value: Piece }) {
