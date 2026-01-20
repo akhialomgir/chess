@@ -42,12 +42,38 @@ export default function Chessboard() {
     ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
   ]);
 
+  //const eatPiece = (fromPiece: Piece, _: Piece): [Piece, Piece] => [null, fromPiece];
+  const exchangePieces = (fromPiece: Piece, toPiece: Piece): [Piece, Piece] => [toPiece, fromPiece];
+
+  const handleDrop = (e: React.DragEvent, targetX: number, targetY: number) => {
+    const fromStr = e.dataTransfer.getData('from');
+    const [fromX, fromY] = fromStr.split(',').map(Number);
+
+    const newBoard = Positions.map(row => [...row]);
+    [newBoard[fromY][fromX], newBoard[targetY][targetX]] =
+      exchangePieces(newBoard[fromY][fromX], newBoard[targetY][targetX]);
+    setPositions(newBoard);
+  };
+
   return (
     <div className='chessboard'>
       {
         Positions.flat().map((piece, index) => {
+          const x = index % 8;
+          const y = Math.floor(index / 8);
+
           return (
-            <Square key={index} pos={[index % 8, Math.floor(index / 8)]} value={piece} />
+            <div
+              onDragStart={(e) => {
+                e.dataTransfer.setData('from', `${x},${y}`);
+                e.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => handleDrop(e, x, y)}
+              draggable={piece !== null}
+            >
+              <Square key={index} pos={[x, y]} value={piece} />
+            </div>
           )
         })
       }
