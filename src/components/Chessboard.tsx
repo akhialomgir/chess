@@ -1,24 +1,11 @@
 import './Chessboard.css';
-import { useState } from 'react';
+import type { DragEvent } from 'react';
+import type { Piece, Board } from '../types/chess';
+import { pieceSprite } from '../utils/pieceAssets';
 
-type Piece = 'P' | 'N' | 'B' | 'R' | 'Q' | 'K' |
-  'p' | 'n' | 'b' | 'r' | 'q' | 'k' |
-  null;
-
-const assetBase = import.meta.env.BASE_URL; // dev: '/', pages: '/chess/'
-const pieceSprite: Record<Exclude<Piece, null>, string> = {
-  P: `${assetBase}piece/wP.svg`,
-  N: `${assetBase}piece/wN.svg`,
-  B: `${assetBase}piece/wB.svg`,
-  R: `${assetBase}piece/wR.svg`,
-  Q: `${assetBase}piece/wQ.svg`,
-  K: `${assetBase}piece/wK.svg`,
-  p: `${assetBase}piece/bP.svg`,
-  n: `${assetBase}piece/bN.svg`,
-  b: `${assetBase}piece/bB.svg`,
-  r: `${assetBase}piece/bR.svg`,
-  q: `${assetBase}piece/bQ.svg`,
-  k: `${assetBase}piece/bK.svg`,
+type ChessboardProps = {
+  positions: Board;
+  onMove: (move: { from: [number, number]; to: [number, number]; isCapture: boolean }) => void;
 };
 
 function Square({ pos, value }: { pos: [number, number]; value: Piece }) {
@@ -42,40 +29,33 @@ function Square({ pos, value }: { pos: [number, number]; value: Piece }) {
   );
 }
 
-export default function Chessboard() {
-  const [Positions, setPositions] = useState<Piece[][]>([
-    ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
-    ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-    ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
-  ]);
-
-  //const eatPiece = (fromPiece: Piece, _: Piece): [Piece, Piece] => [null, fromPiece];
-  const exchangePieces = (fromPiece: Piece, toPiece: Piece): [Piece, Piece] => [toPiece, fromPiece];
-
-  const handleDrop = (e: React.DragEvent, targetX: number, targetY: number) => {
+export default function Chessboard({ positions, onMove }: ChessboardProps) {
+  const handleDrop = (e: DragEvent, targetX: number, targetY: number) => {
     const fromStr = e.dataTransfer.getData('from');
     const [fromX, fromY] = fromStr.split(',').map(Number);
 
-    const newBoard = Positions.map(row => [...row]);
-    [newBoard[fromY][fromX], newBoard[targetY][targetX]] =
-      exchangePieces(newBoard[fromY][fromX], newBoard[targetY][targetX]);
-    setPositions(newBoard);
+    const fromPiece = positions[fromY][fromX];
+    const toPiece = positions[targetY][targetX];
+
+    if (!fromPiece) return; // nothing to move
+
+    onMove({
+      from: [fromX, fromY],
+      to: [targetX, targetY],
+      isCapture: Boolean(toPiece),
+    });
   };
 
   return (
     <div className='chessboard'>
       {
-        Positions.flat().map((piece, index) => {
+        positions.flat().map((piece, index) => {
           const x = index % 8;
           const y = Math.floor(index / 8);
 
           return (
             <div
+              key={index}
               onDragStart={(e) => {
                 e.dataTransfer.setData('from', `${x},${y}`);
                 e.dataTransfer.effectAllowed = 'move';

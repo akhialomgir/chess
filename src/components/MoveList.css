@@ -1,0 +1,16 @@
+.movelist {
+    padding: 12px;
+}
+
+.movelist ol {
+    list-style: decimal;
+    padding-left: 20px;
+}
+
+.movelist li {
+    cursor: pointer;
+}
+
+.movelist li.current {
+    font-weight: bold;
+}
