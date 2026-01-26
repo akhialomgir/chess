@@ -22,14 +22,14 @@ type MoveInput = {
 };
 
 const initialBoard: Board = [
-  ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
-  ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+  ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'],
+  ['pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn'],
   [null, null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null, null],
-  ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-  ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
+  ['Pawn', 'Pawn', 'Pawn', 'Pawn', 'Pawn', 'Pawn', 'Pawn', 'Pawn'],
+  ['Rook', 'Knight', 'Bishop', 'Queen', 'King', 'Bishop', 'Knight', 'Rook'],
 ];
 
 function cloneBoard(board: Board): Board {
@@ -81,8 +81,13 @@ function gameReducer(state: GameState, action: MoveAction): GameState {
   }
 
   const currentBoard = state.history[state.cursor];
-  const updatedBoard = applyMove(currentBoard, action);
   const movingPiece = currentBoard[fromY][fromX];
+
+  if (!movingPiece) {
+    return state;
+  }
+
+  const updatedBoard = applyMove(currentBoard, action);
 
   const trimmedHistory = state.history.slice(0, state.cursor + 1);
   const trimmedMoves = state.moveHistory.slice(0, state.cursor);

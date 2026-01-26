@@ -1,6 +1,6 @@
 import './Chessboard.css';
 import type { DragEvent } from 'react';
-import type { Piece, Board } from '../types/chess';
+import type { Cell, Board } from '../types/chess';
 import { pieceSprite } from '../utils/pieceAssets';
 
 type ChessboardProps = {
@@ -8,7 +8,7 @@ type ChessboardProps = {
   onMove: (move: { from: [number, number]; to: [number, number]; isCapture: boolean }) => void;
 };
 
-function Square({ pos, value }: { pos: [number, number]; value: Piece }) {
+function Square({ pos, value }: { pos: [number, number]; value: Cell }) {
   const pieceSrc = value ? pieceSprite[value] : null;
   const [x, y] = pos;
   const isDark = (x + y) & 1;
