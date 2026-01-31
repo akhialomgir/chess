@@ -2,8 +2,8 @@ import { useReducer } from 'react';
 
 import Chessboard from './Chessboard.tsx';
 import MoveList from './MoveList.tsx';
-import type { Board, MoveRecord } from '../types/chess';
-import getLegalMoves from '../utils/getLegalMoves';
+import type { Board, MoveRecord, Side } from '../types/chess';
+import { getPieceSide, getLegalMoves } from '../utils/pieceMove.ts';
 
 type GameState = {
   history: Board[]; // stack
@@ -13,8 +13,11 @@ type GameState = {
 
 type MoveAction =
   | { type: 'exchange'; from: [number, number]; to: [number, number] }
-  | { type: 'capture'; from: [number, number]; to: [number, number] }
-  | { type: 'jumpTo'; cursor: number };
+  | { type: 'capture'; from: [number, number]; to: [number, number] };
+
+type JumpToAction = { type: 'jumpTo'; cursor: number };
+
+type GameAction = MoveAction | JumpToAction;
 
 type MoveInput = {
   from: [number, number];
@@ -37,11 +40,7 @@ function cloneBoard(board: Board): Board {
   return board.map(row => [...row]);
 }
 
-type MoveActionWithPositions =
-  | { type: 'exchange'; from: [number, number]; to: [number, number] }
-  | { type: 'capture'; from: [number, number]; to: [number, number] };
-
-function applyMove(board: Board, action: MoveActionWithPositions): Board {
+function applyMove(board: Board, action: MoveAction): Board {
   const next = cloneBoard(board);
   const [fromX, fromY] = action.from;
   const [toX, toY] = action.to;
@@ -66,7 +65,7 @@ function applyMove(board: Board, action: MoveActionWithPositions): Board {
   return next;
 }
 
-function gameReducer(state: GameState, action: MoveAction): GameState {
+function gameReducer(state: GameState, action: GameAction): GameState {
   if (action.type === 'jumpTo') {
     return {
       ...state,
@@ -88,9 +87,16 @@ function gameReducer(state: GameState, action: MoveAction): GameState {
     return state;
   }
 
+  // Check if it's the correct side's turn
+  const pieceSide = getPieceSide(movingPiece);
+  const currentSide: Side = (state.cursor & 1) === 0 ? 'White' : 'Black';
+  if (pieceSide !== currentSide) {
+    return state;
+  }
+
   // Check if the move is legal
   const legalMoves = getLegalMoves(movingPiece, action.from, currentBoard);
-  const isLegalMove = legalMoves.some(move => 
+  const isLegalMove = legalMoves.some(move =>
     move.to[0] === toX && move.to[1] === toY
   );
 

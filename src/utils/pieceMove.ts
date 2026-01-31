@@ -1,7 +1,7 @@
 import type { Side, Piece, Board, MoveRecord, Position } from "../types/chess";
 import { PieceMap, isPawn } from "../types/chess";
 
-function getSide(piece: Piece): Side {
+function getPieceSide(piece: Piece): Side {
   return PieceMap.White.some(p => p === piece) ? 'White' : 'Black';
 }
 
@@ -23,7 +23,7 @@ function getPawnMoves(
   board: Board
 ): Position[] {
   const [x, y] = position;
-  const side = getSide(piece);
+  const side = getPieceSide(piece);
   const moves: Array<[number, number]> = [];
 
   const direction = side === 'White' ? -1 : 1;
@@ -51,7 +51,7 @@ function getPawnMoves(
     if (!inBounds(captureX, captureY)) continue;
 
     const targetPiece = board[captureY][captureX];
-    if (targetPiece !== null && getSide(targetPiece) !== side) {
+    if (targetPiece !== null && getPieceSide(targetPiece) !== side) {
       moves.push([captureX, captureY]);
     }
   }
@@ -71,4 +71,4 @@ function getLegalMoves(
   return [{ piece, from: position, to: position }];
 }
 
-export default getLegalMoves;
+export { getPieceSide, getLegalMoves };
