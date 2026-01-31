@@ -3,6 +3,7 @@ import { useReducer } from 'react';
 import Chessboard from './Chessboard.tsx';
 import MoveList from './MoveList.tsx';
 import type { Board, MoveRecord } from '../types/chess';
+import getLegalMoves from '../utils/getLegalMoves';
 
 type GameState = {
   history: Board[]; // stack
@@ -84,6 +85,17 @@ function gameReducer(state: GameState, action: MoveAction): GameState {
   const movingPiece = currentBoard[fromY][fromX];
 
   if (!movingPiece) {
+    return state;
+  }
+
+  // Check if the move is legal
+  const legalMoves = getLegalMoves(movingPiece, action.from, currentBoard);
+  const isLegalMove = legalMoves.some(move => 
+    move.to[0] === toX && move.to[1] === toY
+  );
+
+  if (!isLegalMove) {
+    // Reject illegal move
     return state;
   }
 
