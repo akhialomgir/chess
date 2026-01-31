@@ -2,7 +2,7 @@ import type { Side, Piece, Board, MoveRecord, Position } from "../types/chess";
 import { PieceMap, isPawn } from "../types/chess";
 
 function getSide(piece: Piece): Side {
-  return PieceMap.White.includes(piece as any) ? 'White' : 'Black';
+  return PieceMap.White.some(p => p === piece) ? 'White' : 'Black';
 }
 
 function inBounds(x: number, y: number): boolean {
