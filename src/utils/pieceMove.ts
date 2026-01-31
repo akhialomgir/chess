@@ -37,6 +37,14 @@ function createMoveChecker(board: Board, side: Side) {
   };
 }
 
+function getPawnDirection(side: Side) {
+  return {
+    direction: side === 'White' ? -1 : 1,
+    startRow: side === 'White' ? 6 : 1,
+    isFirstMove: (y: number) => y === (side === 'White' ? 6 : 1)
+  };
+}
+
 function makeMoves(
   piece: Piece,
   from: Position,
@@ -45,7 +53,6 @@ function makeMoves(
   return targets.map(to => ({ piece, from, to }));
 }
 
-//TODO: direction move
 function getPawnMoves(
   piece: Piece,
   position: Position,
@@ -54,25 +61,22 @@ function getPawnMoves(
   const [x, y] = position;
   const side = getPieceSide(piece);
   const checker = createMoveChecker(board, side);
+  const { direction, isFirstMove } = getPawnDirection(side);
   const moves: Position[] = [];
 
-  const direction = side === 'White' ? -1 : 1;
-  const startRow = side === 'White' ? 6 : 1;
-  const isFirstMove = y === startRow;
-
-  // Forward one square (cannot capture)
+  // Forward one
   const nextY = y + direction;
   if (checker.canMove(x, nextY, false)) {
     moves.push([x, nextY]);
 
-    // Forward two squares on first move
-    if (isFirstMove) {
+    // Forward two
+    if (isFirstMove(y)) {
       const twoStepsY = y + 2 * direction;
       checker.addIfValid(moves, x, twoStepsY, false);
     }
   }
 
-  // Diagonal captures (must capture)
+  // Capture
   for (const dx of [-1, 1]) {
     const captureX = x + dx;
     const captureY = y + direction;
