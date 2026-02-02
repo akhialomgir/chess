@@ -68,22 +68,16 @@ function getPawnMoves(
   const { direction, isFirstMove } = getPawnDirection(side);
   const moves: Position[] = [];
 
-  // Forward one
-  const nextY = y + direction;
-  if (checker.canMove(x, nextY, false)) {
-    moves.push([x, nextY]);
-
-    // Forward two
-    if (isFirstMove(y)) {
-      const twoStepsY = y + 2 * direction;
-      checker.addIfValid(moves, x, twoStepsY, false);
-    }
+  // Forward move (cannot capture)
+  for (let i = 1; i <= (isFirstMove(y) ? 2 : 1); i++) {
+    const [nextX, nextY] = [x, y + direction * i];
+    if (!checker.canMove(nextX, nextY, false)) break;
+    moves.push([nextX, nextY]);
   }
 
-  // Capture
+  // Diagonal capture
   for (const dx of [-1, 1]) {
-    const captureX = x + dx;
-    const captureY = y + direction;
+    const [captureX, captureY] = [x + dx, y + direction];
     if (inBounds(captureX, captureY)) {
       const targetPiece = board[captureY][captureX];
       if (targetPiece !== null && getPieceSide(targetPiece) !== side) {
@@ -95,65 +89,54 @@ function getPawnMoves(
   return moves;
 }
 
-function getKnightMoves(piece: Piece, position: Position, board: Board): Position[] {
+function getMoves(
+  piece: Piece,
+  position: Position,
+  board: Board,
+  directions: number[][],
+  maxDistance: number = 1
+): Position[] {
   const [x, y] = position;
   const side = getPieceSide(piece);
   const checker = createMoveChecker(board, side);
   const moves: Position[] = [];
 
-  const knightOffsets = [
-    [2, 1], [2, -1], [-2, 1], [-2, -1],
-    [1, 2], [1, -2], [-1, 2], [-1, -2]
-  ];
-
-  for (const [dx, dy] of knightOffsets) {
-    checker.addIfValid(moves, x + dx, y + dy);
+  for (const [dx, dy] of directions) {
+    for (let i = 1; i <= maxDistance; i++) {
+      const [nextX, nextY] = [x + (dx * i), y + (dy * i)];
+      checker.addIfValid(moves, nextX, nextY);
+      if (maxDistance > 1 && checker.hasPiece(nextX, nextY)) break;
+    }
   }
 
   return moves;
+}
+
+function getJumpMoves(piece: Piece, position: Position, board: Board, offsets: number[][]): Position[] {
+  return getMoves(piece, position, board, offsets, 1);
+}
+
+function getSlidingMoves(piece: Piece, position: Position, board: Board, directions: number[][]): Position[] {
+  return getMoves(piece, position, board, directions, 7);
+}
+
+function getKnightMoves(piece: Piece, position: Position, board: Board): Position[] {
+  return getJumpMoves(piece, position, board, [
+    [2, 1], [2, -1], [-2, 1], [-2, -1],
+    [1, 2], [1, -2], [-1, 2], [-1, -2]
+  ]);
 }
 
 function getBishopMoves(piece: Piece, position: Position, board: Board): Position[] {
-  const [x, y] = position;
-  const side = getPieceSide(piece);
-  const checker = createMoveChecker(board, side);
-  const moves: Position[] = [];
-
-  const bishopBaseOffsets = [
+  return getSlidingMoves(piece, position, board, [
     [1, 1], [1, -1], [-1, 1], [-1, -1]
-  ];
-
-  for (const [dx, dy] of bishopBaseOffsets) {
-    for (let i = 1; i < 8; i++) {
-      const [nextX, nextY] = [x + (dx * i), y + (dy * i)];
-      checker.addIfValid(moves, nextX, nextY);
-      if (checker.hasPiece(nextX, nextY)) break; //block
-    }
-  }
-
-  return moves;
+  ]);
 }
 
 function getRookMoves(piece: Piece, position: Position, board: Board): Position[] {
-  const [x, y] = position;
-  const side = getPieceSide(piece);
-  const checker = createMoveChecker(board, side);
-  const moves: Position[] = [];
-
-
-  const rookBaseOffsets = [
+  return getSlidingMoves(piece, position, board, [
     [0, 1], [0, -1], [-1, 0], [1, 0]
-  ];
-
-  for (const [dx, dy] of rookBaseOffsets) {
-    for (let i = 1; i < 8; i++) {
-      const [nextX, nextY] = [x + (dx * i), y + (dy * i)];
-      checker.addIfValid(moves, nextX, nextY);
-      if (checker.hasPiece(nextX, nextY)) break; //block
-    }
-  }
-
-  return moves;
+  ]);
 }
 
 function getQueenMoves(piece: Piece, position: Position, board: Board): Position[] {
@@ -161,22 +144,10 @@ function getQueenMoves(piece: Piece, position: Position, board: Board): Position
 }
 
 function getKingMoves(piece: Piece, position: Position, board: Board): Position[] {
-  const [x, y] = position;
-  const side = getPieceSide(piece);
-  const checker = createMoveChecker(board, side);
-  const moves: Position[] = [];
-
-
-  const rookBaseOffsets = [
+  return getJumpMoves(piece, position, board, [
     [0, 1], [0, -1], [-1, 0], [1, 0],
     [1, 1], [1, -1], [-1, 1], [-1, -1]
-  ];
-
-  for (const [dx, dy] of rookBaseOffsets) {
-    checker.addIfValid(moves, x + dx, y + dy);
-  }
-
-  return moves;
+  ]);
 }
 
 
