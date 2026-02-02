@@ -33,6 +33,10 @@ function createMoveChecker(board: Board, side: Side) {
       if (canMoveTo(x, y, board, side, canCapture)) {
         moves.push([x, y]);
       }
+    },
+    hasPiece: (x: number, y: number) => {
+      if (!inBounds(x, y)) return false;
+      return board[y][x] !== null;
     }
   };
 }
@@ -119,9 +123,11 @@ function getBishopMoves(piece: Piece, position: Position, board: Board): Positio
     [1, 1], [1, -1], [-1, 1], [-1, -1]
   ];
 
-  for (let i = 1; i < 8; i++) {
-    for (const [dx, dy] of bishopBaseOffsets) {
-      checker.addIfValid(moves, x + (dx * i), y + (dy * i));
+  for (const [dx, dy] of bishopBaseOffsets) {
+    for (let i = 1; i < 8; i++) {
+      const [nextX, nextY] = [x + (dx * i), y + (dy * i)];
+      checker.addIfValid(moves, nextX, nextY);
+      if (checker.hasPiece(nextX, nextY)) break; //block
     }
   }
 
@@ -139,9 +145,11 @@ function getRookMoves(piece: Piece, position: Position, board: Board): Position[
     [0, 1], [0, -1], [-1, 0], [1, 0]
   ];
 
-  for (let i = 1; i < 8; i++) {
-    for (const [dx, dy] of rookBaseOffsets) {
-      checker.addIfValid(moves, x + (dx * i), y + (dy * i));
+  for (const [dx, dy] of rookBaseOffsets) {
+    for (let i = 1; i < 8; i++) {
+      const [nextX, nextY] = [x + (dx * i), y + (dy * i)];
+      checker.addIfValid(moves, nextX, nextY);
+      if (checker.hasPiece(nextX, nextY)) break; //block
     }
   }
 
