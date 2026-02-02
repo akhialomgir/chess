@@ -94,7 +94,7 @@ function getMoves(
   position: Position,
   board: Board,
   directions: number[][],
-  maxDistance: number = 1
+  stopAtPiece: boolean = false
 ): Position[] {
   const [x, y] = position;
   const side = getPieceSide(piece);
@@ -102,10 +102,12 @@ function getMoves(
   const moves: Position[] = [];
 
   for (const [dx, dy] of directions) {
-    for (let i = 1; i <= maxDistance; i++) {
+    for (let i = 1; i < 8; i++) {
       const [nextX, nextY] = [x + (dx * i), y + (dy * i)];
+      if (!inBounds(nextX, nextY)) break;
       checker.addIfValid(moves, nextX, nextY);
-      if (maxDistance > 1 && checker.hasPiece(nextX, nextY)) break;
+      if (stopAtPiece && checker.hasPiece(nextX, nextY)) break;
+      if (!stopAtPiece) break;
     }
   }
 
@@ -113,11 +115,11 @@ function getMoves(
 }
 
 function getJumpMoves(piece: Piece, position: Position, board: Board, offsets: number[][]): Position[] {
-  return getMoves(piece, position, board, offsets, 1);
+  return getMoves(piece, position, board, offsets, false);
 }
 
 function getSlidingMoves(piece: Piece, position: Position, board: Board, directions: number[][]): Position[] {
-  return getMoves(piece, position, board, directions, 7);
+  return getMoves(piece, position, board, directions, true);
 }
 
 function getKnightMoves(piece: Piece, position: Position, board: Board): Position[] {
