@@ -1,5 +1,5 @@
 import type { Side, Piece, Board, MoveRecord, Position } from "../types/chess";
-import { PieceMap, isPawn, isKnight } from "../types/chess";
+import { PieceMap, isPawn, isKnight, isBishop, isRook, isQueen, isKing } from "../types/chess";
 
 function getPieceSide(piece: Piece): Side {
   return PieceMap.White.some(p => p === piece) ? 'White' : 'Black';
@@ -109,6 +109,69 @@ function getKnightMoves(piece: Piece, position: Position, board: Board): Positio
   return moves;
 }
 
+function getBishopMoves(piece: Piece, position: Position, board: Board): Position[] {
+  const [x, y] = position;
+  const side = getPieceSide(piece);
+  const checker = createMoveChecker(board, side);
+  const moves: Position[] = [];
+
+  const bishopBaseOffsets = [
+    [1, 1], [1, -1], [-1, 1], [-1, -1]
+  ];
+
+  for (let i = 1; i < 8; i++) {
+    for (const [dx, dy] of bishopBaseOffsets) {
+      checker.addIfValid(moves, x + (dx * i), y + (dy * i));
+    }
+  }
+
+  return moves;
+}
+
+function getRookMoves(piece: Piece, position: Position, board: Board): Position[] {
+  const [x, y] = position;
+  const side = getPieceSide(piece);
+  const checker = createMoveChecker(board, side);
+  const moves: Position[] = [];
+
+
+  const rookBaseOffsets = [
+    [0, 1], [0, -1], [-1, 0], [1, 0]
+  ];
+
+  for (let i = 1; i < 8; i++) {
+    for (const [dx, dy] of rookBaseOffsets) {
+      checker.addIfValid(moves, x + (dx * i), y + (dy * i));
+    }
+  }
+
+  return moves;
+}
+
+function getQueenMoves(piece: Piece, position: Position, board: Board): Position[] {
+  return Array.from(new Set([...getBishopMoves(piece, position, board), ...getRookMoves(piece, position, board)]));
+}
+
+function getKingMoves(piece: Piece, position: Position, board: Board): Position[] {
+  const [x, y] = position;
+  const side = getPieceSide(piece);
+  const checker = createMoveChecker(board, side);
+  const moves: Position[] = [];
+
+
+  const rookBaseOffsets = [
+    [0, 1], [0, -1], [-1, 0], [1, 0],
+    [1, 1], [1, -1], [-1, 1], [-1, -1]
+  ];
+
+  for (const [dx, dy] of rookBaseOffsets) {
+    checker.addIfValid(moves, x + dx, y + dy);
+  }
+
+  return moves;
+}
+
+
 function getLegalMoves(
   piece: Piece,
   position: [number, number],
@@ -119,6 +182,18 @@ function getLegalMoves(
   }
   if (isKnight(piece)) {
     return makeMoves(piece, position, getKnightMoves(piece, position, board));
+  }
+  if (isBishop(piece)) {
+    return makeMoves(piece, position, getBishopMoves(piece, position, board));
+  }
+  if (isRook(piece)) {
+    return makeMoves(piece, position, getRookMoves(piece, position, board));
+  }
+  if (isQueen(piece)) {
+    return makeMoves(piece, position, getQueenMoves(piece, position, board));
+  }
+  if (isKing(piece)) {
+    return makeMoves(piece, position, getKingMoves(piece, position, board));
   }
 
   return [{ piece, from: position, to: position }];
