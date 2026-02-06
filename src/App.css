@@ -11,10 +11,6 @@
 }
 
 @media (max-width: 768px) {
-  #root {
-    padding: 1rem;
-  }
-
   .game-box {
     flex-direction: column;
     align-items: center;
