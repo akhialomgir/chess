@@ -180,4 +180,4 @@ function getLegalMoves(
   return [{ piece, from: position, to: position }];
 }
 
-export { getPieceSide, getLegalMoves };
+export { getPieceSide, getLegalMoves, inBounds };

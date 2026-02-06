@@ -1,7 +1,8 @@
 import './Chessboard.css';
 import type { Cell, Board } from '../types/chess';
 import { pieceSprite } from '../utils/pieceAssets';
-import { useState } from 'react';
+import { inBounds } from '../utils/pieceMove';
+import { useState, useRef } from 'react';
 
 type ChessboardProps = {
   positions: Board;
@@ -32,6 +33,7 @@ function Square({ pos, value, isDragging }: { pos: [number, number]; value: Cell
 export default function Chessboard({ positions, onMove }: ChessboardProps) {
   const [fromSrc, setFromSrc] = useState<{ fromX?: number; fromY?: number } | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (fromX: number, fromY: number, fromPiece: Cell) => {
     if (!fromPiece) return;
@@ -44,8 +46,26 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
     }
   };
 
-  const handlePointerUp = (toX: number, toY: number) => {
-    if (!fromSrc || fromSrc.fromX === undefined || fromSrc.fromY === undefined) return;
+  const handleBoardPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!fromSrc || fromSrc.fromX === undefined || fromSrc.fromY === undefined || !boardRef.current) {
+      setFromSrc(null);
+      setMousePos(null);
+      return;
+    }
+
+    const rect = boardRef.current.getBoundingClientRect();
+    const relativeX = e.clientX - rect.left;
+    const relativeY = e.clientY - rect.top;
+
+    const squareSize = rect.width / 8;
+    const toX = Math.floor(relativeX / squareSize);
+    const toY = Math.floor(relativeY / squareSize);
+!inBounds(toX, toY)
+    if (toX < 0 || toX >= 8 || toY < 0 || toY >= 8) {
+      setFromSrc(null);
+      setMousePos(null);
+      return;
+    }
 
     const fromX = fromSrc.fromX;
     const fromY = fromSrc.fromY;
@@ -73,7 +93,7 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
     : null;
 
   return (
-    <div className='chessboard' onPointerMove={handlePointerMove}>
+    <div className='chessboard' ref={boardRef} onPointerMove={handlePointerMove} onPointerUp={handleBoardPointerUp}>
       {
         positions.flat().map((piece, index) => {
           const x = index % 8;
@@ -84,7 +104,6 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
             <div
               key={index}
               onPointerDown={() => handleMouseDown(x, y, piece)}
-              onPointerUp={() => handlePointerUp(x, y)}
             >
               <Square key={index} pos={[x, y]} value={piece} isDragging={!!isDragging} />
             </div>
