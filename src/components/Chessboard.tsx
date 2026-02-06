@@ -38,13 +38,13 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
     setFromSrc({ fromX, fromY });
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (fromSrc) {
       setMousePos({ x: e.clientX, y: e.clientY });
     }
   };
 
-  const handleMouseUp = (toX: number, toY: number) => {
+  const handlePointerUp = (toX: number, toY: number) => {
     if (!fromSrc || fromSrc.fromX === undefined || fromSrc.fromY === undefined) return;
 
     const fromX = fromSrc.fromX;
@@ -73,7 +73,7 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
     : null;
 
   return (
-    <div className='chessboard' onMouseMove={handleMouseMove}>
+    <div className='chessboard' onPointerMove={handlePointerMove}>
       {
         positions.flat().map((piece, index) => {
           const x = index % 8;
@@ -83,8 +83,8 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
           return (
             <div
               key={index}
-              onMouseDown={() => handleMouseDown(x, y, piece)}
-              onMouseUp={() => handleMouseUp(x, y)}
+              onPointerDown={() => handleMouseDown(x, y, piece)}
+              onPointerUp={() => handlePointerUp(x, y)}
             >
               <Square key={index} pos={[x, y]} value={piece} isDragging={!!isDragging} />
             </div>
