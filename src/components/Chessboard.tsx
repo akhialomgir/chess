@@ -1,14 +1,14 @@
 import './Chessboard.css';
-import type { DragEvent } from 'react';
 import type { Cell, Board } from '../types/chess';
 import { pieceSprite } from '../utils/pieceAssets';
+import { useState } from 'react';
 
 type ChessboardProps = {
   positions: Board;
   onMove: (move: { from: [number, number]; to: [number, number]; isCapture: boolean }) => void;
 };
 
-function Square({ pos, value }: { pos: [number, number]; value: Cell }) {
+function Square({ pos, value, isDragging }: { pos: [number, number]; value: Cell; isDragging?: boolean }) {
   const pieceSrc = value ? pieceSprite[value] : null;
   const [x, y] = pos;
   const isDark = (x + y) & 1;
@@ -18,7 +18,7 @@ function Square({ pos, value }: { pos: [number, number]; value: Cell }) {
 
   return (
     <div className={`board-square ${isDark ? 'dark' : 'light'}`}>
-      {pieceSrc && <img src={pieceSrc} alt={`${value} piece`} />}
+      {pieceSrc && <img src={pieceSrc} alt={`${value} piece`} draggable={false} style={{ opacity: isDragging ? 0.3 : 1 }} />}
       <span className={`file-label ${isDark ? 'light-text' : 'dark-text'}`}>
         {fileLabel}
       </span>
@@ -30,45 +30,83 @@ function Square({ pos, value }: { pos: [number, number]; value: Cell }) {
 }
 
 export default function Chessboard({ positions, onMove }: ChessboardProps) {
-  const handleDrop = (e: DragEvent, targetX: number, targetY: number) => {
-    const fromStr = e.dataTransfer.getData('from');
-    const [fromX, fromY] = fromStr.split(',').map(Number);
+  const [fromSrc, setFromSrc] = useState<{ fromX?: number; fromY?: number } | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
-    const fromPiece = positions[fromY][fromX];
-    const toPiece = positions[targetY][targetX];
+  const handleMouseDown = (fromX: number, fromY: number, fromPiece: Cell) => {
+    if (!fromPiece) return;
+    setFromSrc({ fromX, fromY });
+  };
 
-    if (!fromPiece) return; // nothing to move
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (fromSrc) {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseUp = (toX: number, toY: number) => {
+    if (!fromSrc || fromSrc.fromX === undefined || fromSrc.fromY === undefined) return;
+
+    const fromX = fromSrc.fromX;
+    const fromY = fromSrc.fromY;
+
+    if (fromX === toX && fromY === toY) {
+      setFromSrc(null);
+      setMousePos(null);
+      return;
+    }
+
+    const toPiece = positions[toY][toX];
 
     onMove({
       from: [fromX, fromY],
-      to: [targetX, targetY],
+      to: [toX, toY],
       isCapture: Boolean(toPiece),
     });
+
+    setFromSrc(null);
+    setMousePos(null);
   };
 
+  const draggingPiece = fromSrc && fromSrc.fromX !== undefined && fromSrc.fromY !== undefined
+    ? positions[fromSrc.fromY][fromSrc.fromX]
+    : null;
+
   return (
-    <div className='chessboard'>
+    <div className='chessboard' onMouseMove={handleMouseMove}>
       {
         positions.flat().map((piece, index) => {
           const x = index % 8;
           const y = Math.floor(index / 8);
+          const isDragging = fromSrc && fromSrc.fromX === x && fromSrc.fromY === y;
 
           return (
             <div
               key={index}
-              onDragStart={(e) => {
-                e.dataTransfer.setData('from', `${x},${y}`);
-                e.dataTransfer.effectAllowed = 'move';
-              }}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => handleDrop(e, x, y)}
-              draggable={piece !== null}
+              onMouseDown={() => handleMouseDown(x, y, piece)}
+              onMouseUp={() => handleMouseUp(x, y)}
             >
-              <Square key={index} pos={[x, y]} value={piece} />
+              <Square key={index} pos={[x, y]} value={piece} isDragging={!!isDragging} />
             </div>
           )
         })
       }
+      {draggingPiece && mousePos && (
+        <img
+          src={pieceSprite[draggingPiece]}
+          alt="dragging piece"
+          className="dragging-piece"
+          style={{
+            position: 'fixed',
+            left: mousePos.x,
+            top: mousePos.y,
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            zIndex: 1000,
+            width: '5em',
+          }}
+        />
+      )}
     </div>
   )
 }

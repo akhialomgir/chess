@@ -18,6 +18,11 @@
   user-select: none;
 }
 
+.board-square img {
+  pointer-events: none;
+  user-select: none;
+}
+
 .board-square.dark {
   background-color: var(--dark-square);
 }
