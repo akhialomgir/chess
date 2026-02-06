@@ -60,8 +60,7 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
     const squareSize = rect.width / 8;
     const toX = Math.floor(relativeX / squareSize);
     const toY = Math.floor(relativeY / squareSize);
-!inBounds(toX, toY)
-    if (toX < 0 || toX >= 8 || toY < 0 || toY >= 8) {
+    if (!inBounds(toX, toY)) {
       setFromSrc(null);
       setMousePos(null);
       return;
