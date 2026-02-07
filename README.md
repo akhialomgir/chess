@@ -3,6 +3,8 @@
 ## TODOS
 
 - [x] pref of move logic
-- [ ] show available positions
+- [x] show available positions
+- [ ] show last move
 - [ ] support two-clicks move
-- [ ] use Algebraic notation
+- [ ] use algebraic notation
+- [ ] support scroll history animation
