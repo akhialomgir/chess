@@ -10,6 +10,27 @@
   touch-action: none;
 }
 
+.board-square.available::after {
+  content: '';
+  position: absolute;
+  width: 25%;
+  height: 25%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.board-square.available.dark::after {
+  background-color: hsla(65, 25%, 35%, 1);
+}
+
+.board-square.available.light::after {
+  background-color: hsla(80, 18%, 52%, 1);
+}
+
 .board-square {
   position: relative;
   display: flex;

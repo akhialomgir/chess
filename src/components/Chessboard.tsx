@@ -1,7 +1,7 @@
 import './Chessboard.css';
-import type { Cell, Board } from '../types/chess';
+import type { Cell, Board, Position } from '../types/chess';
 import { pieceSprite } from '../utils/pieceAssets';
-import { inBounds } from '../utils/pieceMove';
+import { inBounds, getLegalMoves } from '../utils/pieceMove';
 import { useState, useRef } from 'react';
 
 type ChessboardProps = {
@@ -9,7 +9,7 @@ type ChessboardProps = {
   onMove: (move: { from: [number, number]; to: [number, number]; isCapture: boolean }) => void;
 };
 
-function Square({ pos, value, isDragging }: { pos: [number, number]; value: Cell; isDragging?: boolean }) {
+function Square({ pos, value, isDragging, isAvailable }: { pos: [number, number]; value: Cell; isDragging?: boolean; isAvailable?: boolean }) {
   const pieceSrc = value ? pieceSprite[value] : null;
   const [x, y] = pos;
   const isDark = (x + y) & 1;
@@ -18,7 +18,7 @@ function Square({ pos, value, isDragging }: { pos: [number, number]; value: Cell
   const rankLabel = 8 - y; // 8-1
 
   return (
-    <div className={`board-square ${isDark ? 'dark' : 'light'}`}>
+    <div className={`board-square ${isDark ? 'dark' : 'light'} ${isAvailable ? 'available' : ''}`}>
       {pieceSrc && <img src={pieceSrc} alt={`${value} piece`} draggable={false} style={{ opacity: isDragging ? 0.3 : 1 }} />}
       <span className={`file-label ${isDark ? 'light-text' : 'dark-text'}`}>
         {fileLabel}
@@ -34,9 +34,18 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
   const [fromSrc, setFromSrc] = useState<{ fromX?: number; fromY?: number } | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const [availablePositions, setAvailablePositions] = useState<Position[]>([]);
+
+  const clearDragState = () => {
+    setFromSrc(null);
+    setAvailablePositions([]);
+    setMousePos(null);
+  };
 
   const handleMouseDown = (fromX: number, fromY: number, fromPiece: Cell) => {
     if (!fromPiece) return;
+    const legalMoves = getLegalMoves(fromPiece, [fromX, fromY], positions);
+    setAvailablePositions(legalMoves.map(move => move.to));
     setFromSrc({ fromX, fromY });
   };
 
@@ -48,8 +57,7 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
 
   const handleBoardPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!fromSrc || fromSrc.fromX === undefined || fromSrc.fromY === undefined || !boardRef.current) {
-      setFromSrc(null);
-      setMousePos(null);
+      clearDragState();
       return;
     }
 
@@ -61,8 +69,7 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
     const toX = Math.floor(relativeX / squareSize);
     const toY = Math.floor(relativeY / squareSize);
     if (!inBounds(toX, toY)) {
-      setFromSrc(null);
-      setMousePos(null);
+      clearDragState();
       return;
     }
 
@@ -70,8 +77,7 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
     const fromY = fromSrc.fromY;
 
     if (fromX === toX && fromY === toY) {
-      setFromSrc(null);
-      setMousePos(null);
+      clearDragState();
       return;
     }
 
@@ -83,8 +89,7 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
       isCapture: Boolean(toPiece),
     });
 
-    setFromSrc(null);
-    setMousePos(null);
+    clearDragState();
   };
 
   const draggingPiece = fromSrc && fromSrc.fromX !== undefined && fromSrc.fromY !== undefined
@@ -104,7 +109,7 @@ export default function Chessboard({ positions, onMove }: ChessboardProps) {
               key={index}
               onPointerDown={() => handleMouseDown(x, y, piece)}
             >
-              <Square key={index} pos={[x, y]} value={piece} isDragging={!!isDragging} />
+              <Square key={index} pos={[x, y]} value={piece} isDragging={!!isDragging} isAvailable={availablePositions.some(pos => pos[0] === x && pos[1] === y)} />
             </div>
           )
         })
